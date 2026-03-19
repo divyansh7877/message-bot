@@ -58,12 +58,22 @@ struct CalendarHelperApp {
 private func requestPermissions() async throws -> Bool {
     let store = EKEventStore()
     return try await withCheckedThrowingContinuation { continuation in
-        store.requestFullAccessToEvents { granted, error in
-            if let error {
-                continuation.resume(throwing: error)
-                return
+        if #available(macOS 14.0, *) {
+            store.requestFullAccessToEvents { granted, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                continuation.resume(returning: granted)
             }
-            continuation.resume(returning: granted)
+        } else {
+            store.requestAccess(to: .event) { granted, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                continuation.resume(returning: granted)
+            }
         }
     }
 }
@@ -93,7 +103,7 @@ private func listEvents(from fromIso: String, to toIso: String) async throws -> 
                 attendees: (event.attendees ?? []).map { attendee in
                     CalendarAttendeeDTO(
                         name: attendee.name,
-                        email: attendee.url?.resourceSpecifier.replacingOccurrences(of: "mailto:", with: ""),
+                        email: attendee.url.absoluteString.replacingOccurrences(of: "mailto:", with: ""),
                         phone: nil
                     )
                 },

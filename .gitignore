@@ -4,3 +4,7 @@ node_modules
 dist
 data
 coverage
+bun.lock
+calendar-helper/.build
+calendar-helper/.swift-cache
+calendar-helper/.swift-home
