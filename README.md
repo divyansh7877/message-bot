@@ -101,6 +101,8 @@ cd ..
 bun run start
 ```
 
+If startup fails with `authorization denied` when opening `~/Library/Messages/chat.db`, the app running Bun does not yet have Full Disk Access. Give Full Disk Access to the exact app you are using, fully quit and reopen it, then rerun `bun run start`.
+
 ## Configuration
 
 The main environment variables are:
@@ -196,6 +198,30 @@ Run the TypeScript check:
 ```bash
 node node_modules/typescript/bin/tsc --noEmit
 ```
+
+## Troubleshooting
+
+### `Failed to open database at ~/Library/Messages/chat.db: authorization denied`
+
+This means macOS blocked the process from reading the Messages database.
+
+Fix it by granting Full Disk Access to the exact app that launched Bun:
+
+1. Open `System Settings > Privacy & Security > Full Disk Access`.
+2. Add your terminal or IDE if it is not already listed.
+3. Turn it on.
+4. Fully quit and reopen that app.
+5. Run `bun run start` again.
+
+Common cases:
+
+- Terminal
+- iTerm
+- Warp
+- Cursor
+- VS Code integrated terminal
+
+Granting Full Disk Access to one terminal app does not automatically grant it to the others.
 
 ## Notes
 
