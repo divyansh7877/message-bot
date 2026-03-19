@@ -53,4 +53,11 @@ describe("AppDatabase mergeAnalysisResult", () => {
 
     expect(db.getOpenActionItems("iMessage;+15551234567")).toHaveLength(0);
   });
+
+  test("records the analysis model when starting a run", () => {
+    const db = createDb();
+    const runId = db.startAnalysisRun("iMessage;+15551234567", "gemini-2.5-flash", 3);
+
+    expect(runId).toBeGreaterThan(0);
+  });
 });

@@ -346,6 +346,7 @@ export class AppDatabase {
       .run({
         $chatId: chatId,
         $startedAt: nowIso(),
+        $model: model,
         $count: inputMessageCount,
       });
 
