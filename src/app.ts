@@ -55,6 +55,7 @@ export class AssistantApp {
 
   async start(): Promise<void> {
     await this.ingestor.refreshChats();
+    await this.ingestor.bootstrapRecentMessages();
     await this.calendarSync.sync();
     this.reminderPlanner.plan();
     this.scheduler.ensureDailyDigestJob();

@@ -7,6 +7,7 @@ export interface AppConfig {
   selfRecipient: string | null;
   selfChatId: string | null;
   dbPath: string;
+  initialMessageLimit: number;
   messagePollIntervalMs: number;
   digestHourLocal: number;
   eventReminderMinutesBefore: number;
@@ -57,6 +58,7 @@ export function loadConfig(env = process.env): AppConfig {
     selfRecipient,
     selfChatId,
     dbPath,
+    initialMessageLimit: parseNumber(env.INITIAL_MESSAGE_LIMIT, 10),
     messagePollIntervalMs: parseNumber(env.MESSAGE_POLL_INTERVAL_MS, 3000),
     digestHourLocal: parseNumber(env.DIGEST_HOUR_LOCAL, 20),
     eventReminderMinutesBefore: parseNumber(env.EVENT_REMINDER_MINUTES_BEFORE, 60),

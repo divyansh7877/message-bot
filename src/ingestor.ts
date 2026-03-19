@@ -47,6 +47,30 @@ export class MessageIngestor {
     }
   }
 
+  async bootstrapRecentMessages(limit = this.config.initialMessageLimit): Promise<void> {
+    if (limit <= 0) {
+      return;
+    }
+
+    const result = await this.sdk.getMessages({
+      excludeOwnMessages: true,
+      limit,
+    });
+    const changedChats = new Set<string>();
+    const messages = [...(result.messages as unknown as readonly AssistantMessage[])].reverse();
+
+    for (const message of messages) {
+      const chatId = await this.handleIncoming(message, { analyzeImmediately: false });
+      if (chatId) {
+        changedChats.add(chatId);
+      }
+    }
+
+    for (const chatId of changedChats) {
+      await this.onChatReady(chatId);
+    }
+  }
+
   async refreshChats(): Promise<void> {
     const chats = (await this.sdk.listChats()) as unknown as Array<Record<string, unknown>>;
 

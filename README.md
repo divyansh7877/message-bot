@@ -111,6 +111,7 @@ The main environment variables are:
 - `GEMINI_MODEL`
 - `SELF_RECIPIENT` or `SELF_CHAT_ID`
 - `DB_PATH`
+- `INITIAL_MESSAGE_LIMIT`
 - `MESSAGE_POLL_INTERVAL_MS`
 - `DIGEST_HOUR_LOCAL`
 - `EVENT_REMINDER_MINUTES_BEFORE`
@@ -120,6 +121,8 @@ The main environment variables are:
 - `CALENDAR_HELPER_PATH`
 
 See `.env.example` for defaults.
+
+On startup, the assistant only bootstraps the most recent `INITIAL_MESSAGE_LIMIT` messages from Messages. The default is `10`.
 
 ## CLI
 

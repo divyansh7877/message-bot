@@ -24,6 +24,7 @@ describe("ReminderPlanner", () => {
       selfRecipient: "+15551234567",
       selfChatId: null,
       dbPath: ":memory:",
+      initialMessageLimit: 10,
       messagePollIntervalMs: 3000,
       digestHourLocal: 20,
       eventReminderMinutesBefore: 60,
