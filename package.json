@@ -1,0 +1,22 @@
+{
+  "name": "message-bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/cli.ts start",
+    "backfill": "bun run src/cli.ts backfill --hours 24",
+    "run-digest-now": "bun run src/cli.ts run-digest-now",
+    "sync-calendar": "bun run src/cli.ts sync-calendar",
+    "analyze-chat": "bun run src/cli.ts analyze-chat",
+    "test": "bun test",
+    "typecheck": "bunx tsc --noEmit"
+  },
+  "dependencies": {
+    "@photon-ai/imessage-kit": "^2.1.2"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.14",
+    "typescript": "^5.9.3"
+  }
+}
