@@ -23,6 +23,19 @@ enum HelperError: Error {
     case encodingFailed
 }
 
+extension HelperError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .invalidArguments:
+            return "Invalid arguments. Expected ISO-8601 timestamps for --from and --to."
+        case .permissionDenied:
+            return "Calendar permission denied."
+        case .encodingFailed:
+            return "Failed to encode calendar events."
+        }
+    }
+}
+
 @main
 struct CalendarHelperApp {
     static func main() async {
@@ -86,7 +99,7 @@ private func listEvents(from fromIso: String, to toIso: String) async throws -> 
     }
 
     let formatter = ISO8601DateFormatter()
-    guard let fromDate = formatter.date(from: fromIso), let toDate = formatter.date(from: toIso) else {
+    guard let fromDate = parseISODate(fromIso), let toDate = parseISODate(toIso) else {
         throw HelperError.invalidArguments
     }
 
@@ -117,4 +130,17 @@ private func requiredValue(_ flag: String, in args: [String]) throws -> String {
         throw HelperError.invalidArguments
     }
     return args[index + 1]
+}
+
+private func parseISODate(_ value: String) -> Date? {
+    let fractionalFormatter = ISO8601DateFormatter()
+    fractionalFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+    if let date = fractionalFormatter.date(from: value) {
+        return date
+    }
+
+    let plainFormatter = ISO8601DateFormatter()
+    plainFormatter.formatOptions = [.withInternetDateTime]
+    return plainFormatter.date(from: value)
 }
