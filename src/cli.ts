@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 import { loadConfig } from "./config";
+import { logInfo } from "./logger";
 import { AssistantApp } from "./app";
 
 async function main(): Promise<void> {
@@ -8,6 +9,7 @@ async function main(): Promise<void> {
   let app: AssistantApp | null = null;
 
   try {
+    logInfo("cli", "Command starting", { command });
     app = new AssistantApp(config);
 
     switch (command) {

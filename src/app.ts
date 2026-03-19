@@ -8,6 +8,7 @@ import { AppDatabase } from "./db";
 import { DigestBuilder } from "./digest";
 import { MessageIngestor } from "./ingestor";
 import { JobRunner } from "./job-runner";
+import { logError, logInfo } from "./logger";
 import { Notifier } from "./notifier";
 import { ReminderPlanner } from "./reminders";
 import { Scheduler } from "./scheduler";
@@ -54,26 +55,41 @@ export class AssistantApp {
   }
 
   async start(): Promise<void> {
+    logInfo("app", "Starting assistant", {
+      dbPath: this.config.dbPath,
+      timezone: this.config.timezone,
+      initialMessageLimit: this.config.initialMessageLimit,
+    });
     await this.ingestor.refreshChats();
     await this.ingestor.bootstrapRecentMessages();
     await this.calendarSync.sync();
     this.reminderPlanner.plan();
     this.scheduler.ensureDailyDigestJob();
     await this.ingestor.startWatching();
+    logInfo("app", "Live iMessage watcher started");
 
     setInterval(() => {
       void this.calendarSync
         .sync()
         .then(() => this.reminderPlanner.plan())
-        .catch((error) => console.error("Calendar sync failed:", error));
+        .catch((error) =>
+          logError("calendar", "Calendar sync failed", {
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        );
     }, 15 * 60_000);
 
     setInterval(() => {
       this.scheduler.ensureDailyDigestJob();
-      void this.jobRunner.runDueJobs().catch((error) => console.error("Job runner failed:", error));
+      void this.jobRunner.runDueJobs().catch((error) =>
+        logError("jobs", "Job runner failed", {
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      );
     }, 60_000);
 
     await this.jobRunner.runDueJobs();
+    logInfo("app", "Startup sequence complete");
   }
 
   async close(): Promise<void> {

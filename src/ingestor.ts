@@ -2,6 +2,7 @@ import { IMessageSDK } from "@photon-ai/imessage-kit";
 import type { AppConfig } from "./config";
 import type { AppDatabase } from "./db";
 import { sha256 } from "./lib/hash";
+import { logError, logInfo } from "./logger";
 import type { AssistantMessage } from "./types";
 
 export class MessageIngestor {
@@ -13,6 +14,7 @@ export class MessageIngestor {
   ) {}
 
   async startWatching(): Promise<void> {
+    logInfo("ingestor", "Starting iMessage watcher");
     await this.sdk.startWatching({
       onDirectMessage: async (message) => {
         await this.handleIncoming(message as AssistantMessage);
@@ -21,12 +23,15 @@ export class MessageIngestor {
         await this.handleIncoming(message as AssistantMessage);
       },
       onError: (error) => {
-        console.error("iMessage watcher error:", error);
+        logError("ingestor", "iMessage watcher error", {
+          error: error instanceof Error ? error.message : String(error),
+        });
       },
     });
   }
 
   async backfill(hours: number): Promise<void> {
+    logInfo("ingestor", "Backfill starting", { hours });
     const since = new Date(Date.now() - hours * 60 * 60_000);
     const result = await this.sdk.getMessages({
       since,
@@ -45,13 +50,20 @@ export class MessageIngestor {
     for (const chatId of changedChats) {
       await this.onChatReady(chatId);
     }
+
+    logInfo("ingestor", "Backfill complete", {
+      fetchedMessages: result.messages.length,
+      changedChats: changedChats.size,
+    });
   }
 
   async bootstrapRecentMessages(limit = this.config.initialMessageLimit): Promise<void> {
     if (limit <= 0) {
+      logInfo("ingestor", "Startup bootstrap skipped", { limit });
       return;
     }
 
+    logInfo("ingestor", "Bootstrapping recent messages", { limit });
     const result = await this.sdk.getMessages({
       excludeOwnMessages: true,
       limit,
@@ -69,10 +81,16 @@ export class MessageIngestor {
     for (const chatId of changedChats) {
       await this.onChatReady(chatId);
     }
+
+    logInfo("ingestor", "Bootstrap complete", {
+      fetchedMessages: result.messages.length,
+      changedChats: changedChats.size,
+    });
   }
 
   async refreshChats(): Promise<void> {
     const chats = (await this.sdk.listChats()) as unknown as Array<Record<string, unknown>>;
+    let enabledChats = 0;
 
     for (const chat of chats) {
       const chatId = typeof chat.chatId === "string" ? chat.chatId : null;
@@ -97,7 +115,16 @@ export class MessageIngestor {
         participants,
         isEnabled: this.isChatEnabled(chatId, isGroup),
       });
+
+      if (this.isChatEnabled(chatId, isGroup)) {
+        enabledChats += 1;
+      }
     }
+
+    logInfo("ingestor", "Chat list refreshed", {
+      totalChats: chats.length,
+      enabledChats,
+    });
   }
 
   private async handleIncoming(
@@ -137,6 +164,11 @@ export class MessageIngestor {
     });
 
     if (inserted && options.analyzeImmediately !== false) {
+      logInfo("ingestor", "New message ingested", {
+        chatId: message.chatId,
+        guid: message.guid,
+        isGroupChat: message.isGroupChat,
+      });
       await this.onChatReady(message.chatId);
     }
 

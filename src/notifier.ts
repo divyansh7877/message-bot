@@ -1,5 +1,6 @@
 import { IMessageSDK } from "@photon-ai/imessage-kit";
 import type { AppConfig } from "./config";
+import { logInfo } from "./logger";
 
 export class Notifier {
   constructor(
@@ -13,6 +14,10 @@ export class Notifier {
       throw new Error("SELF_CHAT_ID or SELF_RECIPIENT must be configured.");
     }
 
+    logInfo("notify", "Sending iMessage", {
+      target,
+      preview: text.slice(0, 80),
+    });
     await this.sdk.send(target, text);
   }
 }
